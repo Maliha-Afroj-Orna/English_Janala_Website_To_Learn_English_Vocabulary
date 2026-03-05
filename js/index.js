@@ -4,12 +4,6 @@ const loadLessons = () => {
     .then((res) => res.json())
     .then((data) => displayLessons(data.data));
 };
-const loadLevelWord = (id) => {
-  const url = `https://openapi.programming-hero.com/api/level/${id}`;
-  fetch(url)
-    .then((res) => res.json())
-    .then((data) => displayLevelWord(data.data));
-};
 
 const displayLessons = (lessons) => {
   const levelContainer = document.getElementById("level-container");
@@ -17,33 +11,68 @@ const displayLessons = (lessons) => {
 
   lessons.forEach((lesson) => {
     const btnDiv = document.createElement("div");
-    btnDiv.innerHTML = `<button onclick="loadLevelWord(${lesson.level_no})" class="btn btn-outline btn-primary"><i class="fa-solid fa-book-open"></i> Lesson - ${lesson.level_no}</button>`;
+    btnDiv.innerHTML = `<button id="lesson-btn-${lesson.level_no}" onclick="loadLevelWord(${lesson.level_no})" class="btn btn-outline btn-primary lesson-btn"><i class="fa-solid fa-book-open"></i> Lesson - ${lesson.level_no}</button>`;
     levelContainer.appendChild(btnDiv);
   });
+};
+
+const removeActive = () => {
+  const lessonBtn = document.querySelectorAll(".lesson-btn");
+  lessonBtn.forEach((btn) => {
+    btn.classList.remove("active");
+  });
+};
+
+const loadLevelWord = (id) => {
+  const url = `https://openapi.programming-hero.com/api/level/${id}`;
+  fetch(url)
+    .then((res) => res.json())
+    .then((data) => {
+      removeActive();
+      const clickedBtn = document.getElementById(`lesson-btn-${id}`);
+      clickedBtn.classList.add("active");
+      displayLevelWord(data.data);
+    });
 };
 
 const displayLevelWord = (words) => {
   const wordContainer = document.getElementById("word-container");
   wordContainer.innerHTML = "";
 
-  words.forEach((word) => {
-    const card = document.createElement("div");
-    card.innerHTML = `
+  if (words.length == 0) {
+    wordContainer.innerHTML = `
+      <div class="text-center col-span-full space-y-6 py-8 font-bangla">
+        <img class="mx-auto" src="./assets/alert-error.png" alt="Alert" />
+        <p class="text-base font-medium text-gray-600">
+          এই Lesson এ এখনো কোন Vocabulary যুক্ত করা হয়নি।
+        </p>
+        <h2 class="text-4xl font-bold text-[#18181B]">
+          নেক্সট Lesson এ যান
+        </h2>
+      </div>
+    `;
+    return;
+  } else {
+    words.forEach((word) => {
+      const card = document.createElement("div");
+      card.innerHTML = `
         <div class="card bg-base-100 card-lg shadow-sm text-center py-4 h-full">
             <div class="card-body space-y-3">
-                <h2 class="card-title justify-center pt-4 text-2xl font-bold">${word.word}</h2>
+                <h2 class="card-title justify-center pt-4 text-2xl font-bold">${word.word ? word.word : "শব্দ পাওয়া যায়নি"}</h2>
                 <p class="font-medium">Meaning / Pronounciation</p>
-                <p class="text-2xl font-bangla font-semibold text-primary">"${word.meaning} / ${word.pronunciation}"</p>
+                <p class="text-2xl font-bangla font-semibold text-primary">"${word.meaning ? word.meaning : "অর্থ পাওয়া যায়নি"} / ${word.pronunciation ? word.pronunciation : "উচ্চারণ পাওয়া যায়নি"}"</p>
                 <div class="flex justify-between items-center pt-10">
-                    <button class="btn btn-gray-200 bg-[#1A91FF10] hover:bg-[#1A91FF40]"><i class="fa-solid fa-circle-info"></i></button>
+                    <button onclick="my_modal_5.showModal()" class="btn btn-gray-200 bg-[#1A91FF10] hover:bg-[#1A91FF40]"><i class="fa-solid fa-circle-info"></i></button>
                     <button class="btn btn-gray-200 bg-[#1A91FF10] hover:bg-[#1A91FF40]"><i class="fa-solid fa-volume-high"></i></button>
                 </div>
             </div>
         </div>
         
         `;
-    wordContainer.append(card);
-  });
+      wordContainer.append(card);
+    });
+  }
 };
 
 loadLessons();
+
